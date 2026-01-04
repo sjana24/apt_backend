@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import CourseModule
-from .serializer import CourseModuleSerializer
+from .serializer import *
 
 class CourseModuleView(APIView):
     
@@ -19,11 +19,11 @@ class CourseModuleView(APIView):
     def get(self, request, pk=None):
         if pk:
             module = get_object_or_404(CourseModule, pk=pk)
-            serializer = CourseModuleSerializer(module)
+            serializer = ModuleSimpleSerializer(module)
             return Response(serializer.data)
         
         modules = CourseModule.objects.all()
-        serializer = CourseModuleSerializer(modules, many=True)
+        serializer = ModuleSimpleSerializer(modules, many=True)
         return Response(serializer.data)
 
     # 3. UPDATE (PUT)
@@ -41,3 +41,4 @@ class CourseModuleView(APIView):
         module = get_object_or_404(CourseModule, pk=pk)
         module.delete()
         return Response({"message": "Module deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
