@@ -52,9 +52,10 @@ class CourseModuleSerializer(serializers.ModelSerializer):
 
 # --- Other Serializers Stay the Same ---
 class StaffSerializer(serializers.ModelSerializer):
+    assigned_modules = CourseStaffSerializer(source='module_assignments', many=True, read_only=True)
     class Meta:
         model = UserTable
-        fields = ['id', 'email', 'full_name', 'role', 'is_active', 'created_at']
+        fields = ['id', 'email', 'full_name', 'role', 'is_active', 'created_at','assigned_modules']
         read_only_fields = ['role']
 
 class LabSerializer(serializers.ModelSerializer):
@@ -62,3 +63,16 @@ class LabSerializer(serializers.ModelSerializer):
         model = Lab
         fields = ['id', 'name', 'capacity', 'created_at', 'updated_at']
 
+class CourseModuleSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseModule
+        fields = ['id', 'module_name', 'module_code', 'credit']
+
+# Serializer for the Degree including its nested modules
+class DegreeWithModulesSerializer(serializers.ModelSerializer):
+    # 'modules' is the related_name defined in the CourseModule model ForeignKey
+    modules = CourseModuleSimpleSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Degree
+        fields = ['id', 'degreeProgram', 'level', 'semester', 'academicYear', 'modules']

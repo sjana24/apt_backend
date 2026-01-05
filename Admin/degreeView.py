@@ -3,20 +3,22 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Degree
-from .serializer import *
-from rest_framework.permissions import IsAuthenticated
+# from .serializer import *
+# from rest_framework.permissions import IsAuthenticated
+
+from .degreeSerializer import *
 
 class DegreeView(APIView):
-    permission_classes = [IsAuthenticated] 
+    # permission_classes = [IsAuthenticated] 
     # 1. GET (List all or Retrieve one)
     def get(self, request, pk=None):
         if pk:
             degree = get_object_or_404(Degree, pk=pk)
-            serializer = DegreeSerializer(degree)
+            serializer = DegreeDeepSerializer(degree)
             return Response(serializer.data)
         
         degrees = Degree.objects.all()
-        serializer = DegreeSerializer(degrees, many=True)
+        serializer = DegreeDeepSerializer(degrees, many=True)
         return Response(serializer.data)
 
     # 2. POST (Create)
@@ -27,29 +29,42 @@ class DegreeView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # 3. PUT (Update)
+# 3. PUT (Update)
+class DegreeUpdateView(APIView):
     def put(self, request, pk):
         degree = get_object_or_404(Degree, pk=pk)
-        # partial=True allows updating just the level or semester without sending everything
-        serializer = DegreeSerializer(degree, data=request.data, partial=True)
+        
+        # We use the 'Sync' serializer which only expects module_ids
+        serializer = DegreeModuleSyncSerializer(degree, data=request.data, partial=True)
+        
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response({
+                "message": "Degree and modules updated successfully",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
-    # 4. DELETE
-    def delete(self, request, pk):
-        degree = get_object_or_404(Degree, pk=pk)
-        degree.delete()
-        return Response({"message": "Degree program deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+ 
+    # # 4. DELETE
+    # def delete(self, request, pk):
+    #     degree = get_object_or_404(Degree, pk=pk)
+    #     degree.delete()
+    #     return Response({"message": "Degree program deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    
+#  get single staff degree details
+class StaffAssignmentsByDegreeView(APIView):
+    def get(self, request, staff_id):
+        # 1. Look for all assignments belonging to this staff ID
+        # 2. Join with course_module and degree for performance
+        assignments = CourseStaff.objects.filter(staff_id=staff_id).select_related(
+            'course_module__degree'
+        )
+        
+        if not assignments.exists():
+            return Response([], status=200)
 
-class DegreeDetailWithModulesView(APIView):
-    permission_classes = [IsAuthenticated] 
-    def get(self, request, degree_id):
-        # Fetch the specific degree or return 404
-        degree = get_object_or_404(Degree, pk=degree_id)
-        
-        # Serialize the degree (which now includes the module list)
-        # serializer = DegreeWithModulesSerializer(degree)
-        
-        # return Response("data")
+        serializer = StaffModuleDetailSerializer(assignments, many=True)
+        return Response(serializer.data)

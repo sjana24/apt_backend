@@ -98,7 +98,7 @@ class UserLoginView(APIView):
 
 # --- GET CURRENT USER ---
 class CurrentUserView(APIView):
-    permission_classes = [IsAuthenticated] # Only logged-in users can access this
+    # permission_classes = [IsAuthenticated] # Only logged-in users can access this
 
     def get(self, request):
         # request.user is automatically populated by the JWT token
@@ -115,7 +115,7 @@ class CurrentUserView(APIView):
 
 # --- LOGOUT (Blacklist Token) ---
 class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
