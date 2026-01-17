@@ -46,6 +46,7 @@ class CourseModule(models.Model):
 class Lab(models.Model):
     name = models.CharField(max_length=100, unique=True)
     capacity = models.PositiveIntegerField() # Number of students the lab can hold
+    availability = models.BooleanField(default=True)
     
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)

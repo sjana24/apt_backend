@@ -22,7 +22,7 @@ class StaffSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = UserTable
-        fields = ['id', 'full_name', 'assigned_modules']
+        fields = ['id', 'full_name', 'assigned_modules','role']
 
 
 class StaffUpdateSerializer(serializers.ModelSerializer):
@@ -38,7 +38,7 @@ class StaffUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserTable
-        fields = ['id', 'email', 'full_name', 'is_active', 'assigned_modules', 'module_ids']
+        fields = ['id', 'email', 'full_name', 'is_active', 'assigned_modules', 'module_ids','role']
 
     def update(self, instance, validated_data):
         # 1. Extract module IDs from the request

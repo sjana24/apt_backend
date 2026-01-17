@@ -12,7 +12,7 @@ class UserView(APIView):
         # 1. Extract data from the request
         data = request.data
         email = data.get('email')
-        full_name = data.get('full_name')
+        full_name = data.get('name')
         password = data.get('password')
         role = data.get('role', 'staff') # Default to staff if not provided
 

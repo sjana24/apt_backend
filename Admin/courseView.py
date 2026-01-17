@@ -5,9 +5,10 @@ from rest_framework import status
 from .models import CourseModule
 # from .serializer import *
 from .courseSerializer import *
+from rest_framework.permissions import IsAuthenticated
 
 class CourseModuleView(APIView):
-    
+    permission_classes = [IsAuthenticated] 
     # 1. CREATE (POST)
     def post(self, request):
         serializer = CreateModuleSerializer(data=request.data)

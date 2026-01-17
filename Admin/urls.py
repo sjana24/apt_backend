@@ -10,15 +10,15 @@ urlpatterns = [
     path('course/<int:pk>', CourseModuleUpdateView.as_view()),
     path('course/staff/<int:staff_id>/', StaffCourseDetailsView.as_view(), name='staff-course-details'),
 
-    path('staffs', StaffView.as_view(), name='staff-list'),
-    
-    path('staffs/<int:pk>', StaffView.as_view(), name='staff-assignments'),
-    path('staffs/<int:pk>/', StaffView.as_view(), name='staff-detail'),
+    path('staff', StaffView.as_view(), name='staff-list'),    
+    path('staff/<int:pk>', StaffView.as_view(), name='staff-assignments'),
+    path('staff/<int:pk>', StaffView.as_view(), name='staff-detail'),
 
-    # path('labs', LabView.as_view(), name='lab-list'),
-    # path('labs/<int:pk>/', LabView.as_view(), name='lab-detail'),
+    path('labs', LabView.as_view(), name='lab-list'),
+    path('labs/<int:pk>', LabView.as_view(), name='lab-detail'),
 
     path('degree', DegreeView.as_view(), name='degree-list'),
+    path('degreeSearch', DegreeSearchView.as_view(), name='degree-searchlist'),
     path('degree/<int:pk>', DegreeUpdateView.as_view(), name='degree-detail'),
     path('degree/staff/<int:staff_id>/', StaffAssignmentsByDegreeView.as_view(), name='staff-degree-assignments'),
 

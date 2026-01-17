@@ -93,3 +93,11 @@ class DegreeModuleSyncSerializer(serializers.ModelSerializer):
             CourseModule.objects.filter(id__in=module_ids).update(degree=instance)
 
         return instance
+    
+class DegreeSearchSerializer(serializers.ModelSerializer):
+    # This uses the related_name from your CourseModule model (e.g., 'modules')
+    # modules = ModuleWithStaffSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Degree
+        fields = ['id', 'degreeProgram']

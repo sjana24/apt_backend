@@ -8,7 +8,7 @@ class CreateModuleSerializer(serializers.ModelSerializer):
     # degree_details = DegreeSimpleSerializer(source='degree', read_only=True)
     class Meta:
         model = CourseModule
-        fields = ['id', 'module_name', 'module_code', 'credit', 'created_at']
+        fields = ['id', 'module_name', 'module_code', 'credit']
 
 # get
 class ModuleSimpleSerializer(serializers.ModelSerializer):

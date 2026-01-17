@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Degree
 # from .serializer import *
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 
 from .degreeSerializer import *
 
 class DegreeView(APIView):
-    # permission_classes = [IsAuthenticated] 
+    permission_classes = [IsAuthenticated] 
     # 1. GET (List all or Retrieve one)
     def get(self, request, pk=None):
         if pk:
@@ -31,6 +31,7 @@ class DegreeView(APIView):
 
 # 3. PUT (Update)
 class DegreeUpdateView(APIView):
+    permission_classes = [IsAuthenticated] 
     def put(self, request, pk):
         degree = get_object_or_404(Degree, pk=pk)
         
@@ -56,6 +57,7 @@ class DegreeUpdateView(APIView):
     
 #  get single staff degree details
 class StaffAssignmentsByDegreeView(APIView):
+    permission_classes = [IsAuthenticated] 
     def get(self, request, staff_id):
         # 1. Look for all assignments belonging to this staff ID
         # 2. Join with course_module and degree for performance
@@ -67,4 +69,26 @@ class StaffAssignmentsByDegreeView(APIView):
             return Response([], status=200)
 
         serializer = StaffModuleDetailSerializer(assignments, many=True)
+        return Response(serializer.data)
+class DegreeSearchView(APIView):
+    permission_classes = [IsAuthenticated] 
+    def get(self, request, pk=None):
+        # Handle retrieving a single degree by ID
+        if pk:
+            degree = get_object_or_404(Degree, pk=pk)
+            serializer = DegreeSearchSerializer(degree)
+            return Response(serializer.data)
+        
+        # --- SEARCH LOGIC START ---
+        # Get the 'search' parameter from the URL (e.g., /degrees/?search=CS)
+        search_query = request.query_params.get('search', None)
+        
+        if search_query:
+            # Filter degrees where degreeProgram contains the search text (case-insensitive)
+            degrees = Degree.objects.filter(degreeProgram__icontains=search_query)
+        else:
+            degrees = Degree.objects.all()
+        # --- SEARCH LOGIC END ---
+
+        serializer = DegreeSearchSerializer(degrees, many=True)
         return Response(serializer.data)
