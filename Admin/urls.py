@@ -1,4 +1,6 @@
 from django.urls import path, include
+
+from Admin.timeTableView import TimetableSlotDetailAPIView, TimetableSlotListCreateAPIView
 from .courseView import *
 from .staffView import *
 from .labView import *
@@ -21,6 +23,9 @@ urlpatterns = [
     path('degreeSearch', DegreeSearchView.as_view(), name='degree-searchlist'),
     path('degree/<int:pk>', DegreeUpdateView.as_view(), name='degree-detail'),
     path('degree/staff/<int:staff_id>/', StaffAssignmentsByDegreeView.as_view(), name='staff-degree-assignments'),
+
+     path('timetable-slots', TimetableSlotListCreateAPIView.as_view(), name='timetable-slot-list-create'),
+    path('timetable-slots/<int:pk>/', TimetableSlotDetailAPIView.as_view(), name='timetable-slot-detail'),
 
     # Main endpoint for listing and creating assignments
     # path('course-staff', CourseStaffView.as_view(), name='course-staff-list'),
