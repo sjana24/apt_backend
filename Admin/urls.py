@@ -1,6 +1,7 @@
 from django.urls import path, include
-
-from Admin.timeTableView import  TimetableSlotDetailAPIView, TimetableSlotListCreateAPIView, TimetableSlotViewSet
+from .timeTableViewByLab import *
+from .timeTableView import  *
+# from Admin.timeTableViewByLab import TimetableSlotLabListCreateAPIView
 from .courseView import *
 from .staffView import *
 from .labView import *
@@ -43,6 +44,15 @@ urlpatterns = [
     # Endpoint for deleting a specific assignment
     # path('course-staff/<int:pk>', CourseStaffView.as_view(), name='course-staff-detail'),
 
+     # Lab timetable endpoints
+    path('timetable-slots/by-lab', TimetableSlotLabViewSet.as_view({'post': 'by_lab'}), name='timetable-by-lab'),
+    # path('timetable-slots/by-lab/available/', TimetableSlotLabListCreateAPIView.as_view({'post': 'by_lab_available_only'}), name='timetable-by-lab-available'),
+    # path('timetable-slots/by-lab/booked/', TimetableSlotLabListCreateAPIView.as_view({'post': 'by_lab_booked_only'}), name='timetable-by-lab-booked'),
+    # path('timetable-slots/check-slot/', TimetableSlotLabListCreateAPIView.as_view({'post': 'check_slot_availability'}), name='check-slot-availability'),
+    # path('timetable-slots/by-lab/daily-summary/', TimetableSlotLabListCreateAPIView.as_view({'post': 'daily_summary_by_lab'}), name='daily-summary-by-lab'),
+    
+    # Individual slot operations
+    # path('timetable-slots/<int:pk>/', TimetableSlotDetailAPIView.as_view(), name='timetable-slot-detail'),
 
     
     # Get a specific degree with its modules
