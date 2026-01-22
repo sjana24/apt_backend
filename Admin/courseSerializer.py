@@ -82,7 +82,10 @@ class ModuleWithDegreeSerializer(serializers.ModelSerializer):
 class StaffAssignmentDetailSerializer(serializers.ModelSerializer):
     # This nests the module (and its degree) inside the assignment
     module_details = ModuleWithDegreeSerializer(source='course_module', read_only=True)
+    staff_id = serializers.IntegerField(source='staff.id', read_only=True)
+    staff_name = serializers.CharField(source='staff.full_name', read_only=True)
+
 
     class Meta:
         model = CourseStaff
-        fields = ['id', 'role', 'assigned_at', 'module_details']
+        fields = ['id', 'role', 'assigned_at', 'module_details','staff_id','staff_name',]
