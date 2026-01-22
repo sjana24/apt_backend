@@ -43,11 +43,30 @@ class CourseModule(models.Model):
     def __str__(self):
         return f"{self.module_code} - {self.module_name}"
     
+# class Lab(models.Model):
+#     name = models.CharField(max_length=100, unique=True)
+#     capacity = models.PositiveIntegerField() # Number of students the lab can hold
+#     availability = models.BooleanField(default=True)
+    
+#     # Audit Fields
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     class Meta:
+#         db_table = 'labs'
+#         ordering = ['name']
+
+#     def __str__(self):
+#         return f"{self.name} (Cap: {self.capacity})"
 class Lab(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    capacity = models.PositiveIntegerField() # Number of students the lab can hold
+    lab_code = models.CharField(
+        max_length=20,
+        default="NEW"
+    )
+    capacity = models.PositiveIntegerField()
     availability = models.BooleanField(default=True)
-    
+
     # Audit Fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -57,7 +76,8 @@ class Lab(models.Model):
         ordering = ['name']
 
     def __str__(self):
-        return f"{self.name} (Cap: {self.capacity})"
+        return f"{self.lab_code} - {self.name} (Cap: {self.capacity})"
+
     
 
 class CourseStaff(models.Model):
@@ -146,55 +166,3 @@ class TimetableSlot(models.Model):
     def __str__(self):
         return f"{self.slot_date} ({self.time_range}) - {self.degree.degreeProgram}"
     
-class TimetableSlot(models.Model):
-    DAY_CHOICES = [
-        (1, 'Monday'),
-        (2, 'Tuesday'),
-        (3, 'Wednesday'),
-        (4, 'Thursday'),
-        (5, 'Friday'),
-    ]
-
-    degree = models.ForeignKey(
-        Degree,
-        on_delete=models.CASCADE,
-        related_name='timetable_slots'
-    )
-
-    module = models.ForeignKey(
-        CourseModule,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='timetable_slots'
-    )
-
-    lab = models.ForeignKey(
-        Lab,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='timetable_slots'
-    )
-
-    slot_date = models.DateField(help_text="Specific calendar date")
-    day_of_week = models.IntegerField(choices=DAY_CHOICES)
-    time_range = models.CharField(max_length=50, help_text="e.g. 08:00 - 09:00")
-    note = models.CharField(max_length=255, blank=True, null=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='allocated_slots'
-    )
-
-    class Meta:
-        db_table = 'timetable_slots'
-        unique_together = ('degree', 'slot_date', 'time_range')
-        ordering = ['slot_date', 'time_range']
-
-    def __str__(self):
-        return f"{self.slot_date} ({self.time_range}) - {self.degree.degreeProgram}"

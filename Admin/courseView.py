@@ -27,12 +27,26 @@ class CourseModuleView(APIView):
         modules = CourseModule.objects.all()
         serializer = ModuleSimpleSerializer(modules, many=True)
         return Response(serializer.data)
+    
 class StaffCourseDetailsView(APIView):
     def get(self, request, staff_id):
         # Fetch all assignments for this staff, including related module and degree
+        degree_id = request.query_params.get("degree_id")
         assignments = CourseStaff.objects.filter(staff_id=staff_id).select_related(
-            'course_module__degree'
+            'course_module__degree',
+            'course_module',
+
         )
+        if degree_id == "null":
+            # Only modules WITHOUT a degree
+            assignments = assignments.filter(
+                course_module__degree__isnull=True
+            )
+        elif degree_id:
+            # Only modules for a specific degree
+            assignments = assignments.filter(
+                course_module__degree_id=degree_id
+            )
         
         # If the staff has no assignments, return an empty list
         if not assignments.exists():
