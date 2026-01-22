@@ -6,6 +6,22 @@ from .models import Lab
 from .labSerializer import LabSerializer
 from rest_framework.permissions import IsAuthenticated
 
+class LabViewStaff(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk=None):
+        # If a specific lab is requested
+        if pk:
+            lab = get_object_or_404(Lab, pk=pk, availability=True)
+            serializer = LabSerializer(lab)
+            return Response(serializer.data)
+
+        # If no pk, return only available labs
+        labs = Lab.objects.filter(availability=True)
+        serializer = LabSerializer(labs, many=True)
+        return Response(serializer.data)
+
+
 class LabView(APIView):
     permission_classes = [IsAuthenticated] 
     def get(self, request, pk=None):

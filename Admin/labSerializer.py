@@ -6,7 +6,7 @@ from .models import *
 class LabSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lab
-        fields = ['id', 'name', 'capacity','availability', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'capacity','availability', 'created_at', 'updated_at','lab_code']
 
 # labAvailabilitySerializer.py
 from rest_framework import serializers

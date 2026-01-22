@@ -17,6 +17,7 @@ urlpatterns = [
     path('staff/<int:pk>', StaffView.as_view(), name='staff-detail'),
 
     path('labs', LabView.as_view(), name='lab-list'),
+    path('labs/staff', LabViewStaff.as_view(), name='lab-list'),
     path('labs/<int:pk>', LabView.as_view(), name='lab-detail'),
     path('labs/availability/<int:pk>', LabView.as_view(), name='lab-detail'),
 
@@ -30,9 +31,8 @@ urlpatterns = [
     path('degree/<int:pk>', DegreeUpdateView.as_view(), name='degree-detail'),
     path('degree/staff/<int:staff_id>/', StaffAssignmentsByDegreeView.as_view(), name='staff-degree-assignments'),
 
-     path('timetable-slots', TimetableSlotListCreateAPIView.as_view(), name='timetable-slot-list-create'),
+    path('timetable-slots', TimetableSlotListCreateAPIView.as_view(), name='timetable-slot-list-create'),
     path('timetable-slots/<int:pk>', TimetableSlotDetailAPIView.as_view(), name='timetable-slot-detail'),
-
      # Additional custom endpoints
     path('timetable/by-degree', TimetableSlotViewSet.as_view({'get': 'list'}), name='timetable-by-degree'),
     path('timetable/check-availability', TimetableSlotViewSet.as_view({'get': 'check_availability'}), name='check-availability'),
