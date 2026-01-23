@@ -3,29 +3,46 @@ from ..serializer import *
 from ..models import *
 
 
+# === STAFF DISPLAY SERIALIZERS ===
 
 class CourseStaffMinimalSerializer(serializers.ModelSerializer):
+    """
+    Minimal serializer for staff course assignments.
+    Shows only essential course information.
+    """
     module_id = serializers.ReadOnlyField(source='course_module.id')
     module_name = serializers.ReadOnlyField(source='course_module.module_name')
     module_code = serializers.ReadOnlyField(source='course_module.module_code')
 
     class Meta:
         model = CourseStaff
-        # Only include the "allowed" values you actually need
-        fields = ['id','module_id', 'module_name', 'module_code', 'role']
+        fields = ['id', 'module_id', 'module_name', 'module_code', 'role']
+
 
 class StaffSerializer(serializers.ModelSerializer):
+    """
+    Basic staff serializer with assigned modules.
+    Used for listing staff members and their course assignments.
+    """
     assigned_modules = CourseStaffMinimalSerializer(
         source='module_assignments', 
         many=True, 
         read_only=True
     )
+    
     class Meta:
         model = UserTable
-        fields = ['id', 'full_name', 'assigned_modules','role']
+        fields = ['id', 'full_name', 'assigned_modules', 'role']
 
+
+# === STAFF UPDATE SERIALIZER ===
 
 class StaffUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating staff details and module assignments.
+    GET: Shows existing modules for reference
+    PUT: Accepts a list of module IDs to update assignments
+    """
     # This shows existing modules for GET requests
     assigned_modules = CourseStaffSerializer(source='module_assignments', many=True, read_only=True)
     
@@ -38,7 +55,7 @@ class StaffUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserTable
-        fields = ['id', 'email', 'full_name', 'is_active', 'assigned_modules', 'module_ids','role']
+        fields = ['id', 'email', 'full_name', 'is_active', 'assigned_modules', 'module_ids', 'role']
 
     def update(self, instance, validated_data):
         # 1. Extract module IDs from the request
@@ -54,7 +71,7 @@ class StaffUpdateSerializer(serializers.ModelSerializer):
             # Clear previous assignments
             CourseStaff.objects.filter(staff=instance).delete()
             
-            # Create new assignments
+            # Create new assignments efficiently using bulk_create
             new_assignments = [
                 CourseStaff(staff=instance, course_module_id=m_id)
                 for m_id in module_ids

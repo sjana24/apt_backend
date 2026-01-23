@@ -3,21 +3,34 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from ..models import Degree
-# from .serializer import *
 from rest_framework.permissions import IsAuthenticated
-
 from .degreeSerializer import *
 
 class DegreeView(APIView):
-    permission_classes = [IsAuthenticated] 
+    """
+    CRUD operations for degree programs.
+    GET: List all degrees or get a specific degree with modules and staff assignments
+    POST: Create a new degree program
+    """
+    permission_classes = [IsAuthenticated]
+    
     # 1. GET (List all or Retrieve one)
     def get(self, request, pk=None):
         if pk:
-            degree = get_object_or_404(Degree, pk=pk)
+            # Optimize with prefetch for modules and their staff
+            degree = get_object_or_404(
+                Degree.objects.prefetch_related(
+                    'modules__staff_assignments__staff'
+                ),
+                pk=pk
+            )
             serializer = DegreeDeepSerializer(degree)
             return Response(serializer.data)
         
-        degrees = Degree.objects.all()
+        # Optimize query for listing all degrees with their modules and staff
+        degrees = Degree.objects.prefetch_related(
+            'modules__staff_assignments__staff'
+        )
         serializer = DegreeDeepSerializer(degrees, many=True)
         return Response(serializer.data)
 
@@ -31,7 +44,12 @@ class DegreeView(APIView):
 
 # 3. PUT (Update)
 class DegreeUpdateView(APIView):
-    permission_classes = [IsAuthenticated] 
+    """
+    Update a degree program with new modules.
+    PUT: Sync degree modules by providing a list of module IDs
+    """
+    permission_classes = [IsAuthenticated]
+    
     def put(self, request, pk):
         degree = get_object_or_404(Degree, pk=pk)
         
@@ -46,18 +64,14 @@ class DegreeUpdateView(APIView):
             }, status=status.HTTP_200_OK)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-
- 
-    # # 4. DELETE
-    # def delete(self, request, pk):
-    #     degree = get_object_or_404(Degree, pk=pk)
-    #     degree.delete()
-    #     return Response({"message": "Degree program deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-    
 #  get single staff degree details
 class StaffAssignmentsByDegreeView(APIView):
-    permission_classes = [IsAuthenticated] 
+    """
+    Get all degree-module assignments for a specific staff member.
+    Includes module and degree information for each assignment.
+    """
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request, staff_id):
         # 1. Look for all assignments belonging to this staff ID
         # 2. Join with course_module and degree for performance
@@ -70,8 +84,14 @@ class StaffAssignmentsByDegreeView(APIView):
 
         serializer = StaffModuleDetailSerializer(assignments, many=True)
         return Response(serializer.data)
+
 class DegreeSearchView(APIView):
-    permission_classes = [IsAuthenticated] 
+    """
+    Search degree programs by name.
+    GET: List all degrees or search by degreeProgram name
+    """
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request, pk=None):
         # Handle retrieving a single degree by ID
         if pk:
@@ -79,7 +99,6 @@ class DegreeSearchView(APIView):
             serializer = DegreeSearchSerializer(degree)
             return Response(serializer.data)
         
-        # --- SEARCH LOGIC START ---
         # Get the 'search' parameter from the URL (e.g., /degrees/?search=CS)
         search_query = request.query_params.get('search', None)
         
@@ -88,7 +107,6 @@ class DegreeSearchView(APIView):
             degrees = Degree.objects.filter(degreeProgram__icontains=search_query)
         else:
             degrees = Degree.objects.all()
-        # --- SEARCH LOGIC END ---
 
         serializer = DegreeSearchSerializer(degrees, many=True)
         return Response(serializer.data)

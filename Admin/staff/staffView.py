@@ -3,10 +3,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from Authenticate.models import UserTable
-# from .serializer import StaffSerializer
 from .staffSerializers import *
 
+
 class StaffView(APIView):
+    """
+    CRUD operations for staff members.
+    GET: List all staff or get a specific staff member with module assignments
+    PUT: Update staff details or reassign modules
+    DELETE: Remove a staff member
+    """
 
     # 1. READ (GET) - Get all staff or one specific staff
     def get(self, request, pk=None):
@@ -44,15 +50,6 @@ class StaffView(APIView):
                 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-
-    # def put(self, request, pk):
-    #     staff = get_object_or_404(UserTable, pk=pk, role='staff')
-    #     serializer = StaffSerializer(staff, data=request.data, partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # 3. DELETE - Remove a staff member
     def delete(self, request, pk):

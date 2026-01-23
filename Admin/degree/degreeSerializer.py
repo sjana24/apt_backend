@@ -3,6 +3,9 @@ from ..models import *
 from Authenticate.models import UserTable
 from ..serializer import *
 
+
+# === BASIC SERIALIZERS ===
+
 class DegreeSerializer(serializers.ModelSerializer):
     """
     Returns basic degree info without nesting modules.
@@ -19,9 +22,13 @@ class DegreeSerializer(serializers.ModelSerializer):
         ]
 
 
+# === STAFF-ASSIGNMENT RELATIONSHIP SERIALIZERS ===
 
-# 1. THE LINK: CourseStaff -> Staff Name
 class StaffAssignmentSerializer(serializers.ModelSerializer):
+    """
+    Lightweight serializer for staff course assignments.
+    Includes staff name and email for reference.
+    """
     staff_name = serializers.ReadOnlyField(source='staff.full_name')
     staff_email = serializers.ReadOnlyField(source='staff.email')
 
@@ -29,25 +36,38 @@ class StaffAssignmentSerializer(serializers.ModelSerializer):
         model = CourseStaff
         fields = ['id', 'staff', 'staff_name', 'staff_email', 'role']
 
-# 2. THE MODULE: Module -> Linked Staff
+
 class ModuleWithStaffSerializer(serializers.ModelSerializer):
-    # This uses the related_name from your CourseStaff model (e.g., 'staff_assignments')
+    """
+    Module serializer showing assigned staff members.
+    Uses the related_name from CourseStaff model.
+    """
     assigned_staff = StaffAssignmentSerializer(source='staff_assignments', many=True, read_only=True)
 
     class Meta:
         model = CourseModule
         fields = ['id', 'module_name', 'module_code', 'credit', 'assigned_staff']
 
-# 3. THE DEGREE: Degree -> Modules -> Staff
+
+# === DEEP/HIERARCHICAL SERIALIZERS ===
+
 class DegreeDeepSerializer(serializers.ModelSerializer):
-    # This uses the related_name from your CourseModule model (e.g., 'modules')
+    """
+    Complete degree representation with nested modules and staff.
+    Degree -> Modules -> Staff hierarchy for frontend consumption.
+    """
     modules = ModuleWithStaffSerializer(many=True, read_only=True)
 
     class Meta:
         model = Degree
         fields = ['id', 'degreeProgram', 'level', 'semester', 'academicYear', 'modules']
 
+
 class StaffModuleDetailSerializer(serializers.ModelSerializer):
+    """
+    Staff course assignment details with module and degree information.
+    Used for fetching assignments by staff member.
+    """
     # Get module details
     module_name = serializers.ReadOnlyField(source='course_module.module_name')
     module_code = serializers.ReadOnlyField(source='course_module.module_code')
@@ -60,9 +80,13 @@ class StaffModuleDetailSerializer(serializers.ModelSerializer):
         fields = ['id', 'module_name', 'module_code', 'role', 'degree_details', 'assigned_at']
 
 
+# === UPDATE/SYNC SERIALIZERS ===
 
-#  update seralizers
 class DegreeModuleSyncSerializer(serializers.ModelSerializer):
+    """
+    Serializer for syncing degree with modules.
+    Accepts a list of module IDs and updates relationships accordingly.
+    """
     # This field accepts a simple list of IDs: [1, 2, 3]
     module_ids = serializers.ListField(
         child=serializers.IntegerField(),
@@ -93,11 +117,13 @@ class DegreeModuleSyncSerializer(serializers.ModelSerializer):
             CourseModule.objects.filter(id__in=module_ids).update(degree=instance)
 
         return instance
+
     
 class DegreeSearchSerializer(serializers.ModelSerializer):
-    # This uses the related_name from your CourseModule model (e.g., 'modules')
-    # modules = ModuleWithStaffSerializer(many=True, read_only=True)
-
+    """
+    Minimal serializer for search results.
+    Returns only degree ID and name for quick lookup.
+    """
     class Meta:
         model = Degree
         fields = ['id', 'degreeProgram']
