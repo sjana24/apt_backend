@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import *
+from ..models import *
 # from Authenticate.models import UserTable
 
 
@@ -12,7 +12,7 @@ class LabSerializer(serializers.ModelSerializer):
 from rest_framework import serializers
 from datetime import datetime, time
 import re
-from .models import Lab, TimetableSlot, Degree, CourseModule
+from ..models import Lab, TimetableSlot, Degree, CourseModule
 from .labSerializer import LabSerializer
 
 class LabAvailabilityRequestSerializer(serializers.Serializer):

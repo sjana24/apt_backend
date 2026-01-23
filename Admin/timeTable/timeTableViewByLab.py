@@ -7,9 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from datetime import datetime, timedelta
 from Admin.models import Lab, TimetableSlot, CourseModule
-from .serializer import *
+from ..serializer import *
 from .timeTableSerializersByLab import *
-from Admin.timeTableSerializers import TimetableSlotWriteSerializer
+from Admin.timeTable.timeTableSerializers import TimetableSlotWriteSerializer
 
 class TimetableSlotLabViewSet(ViewSet):
     """
