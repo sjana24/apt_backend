@@ -1,6 +1,6 @@
-from django.urls import path, include
+from django.urls import path
 from .authView import *
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('signup', UserView.as_view()),
