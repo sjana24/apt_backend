@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import (
+from ..models import (
     Degree,
     CourseModule,
     Lab,
@@ -7,9 +7,9 @@ from .models import (
     TimetableSlot
 )
 from Authenticate.models import UserTable
-from .labSerializer import *
-from .degreeSerializer import *
-from .courseSerializer import *
+from ..lab.labSerializer import *
+from ..degree.degreeSerializer import *
+from ..course.courseSerializer import *
 
 # class TimetableSlotGetSerializer(serializers.ModelSerializer):
 #     degree = DegreeSerializer(read_only=True)
@@ -59,7 +59,7 @@ class TimetableSlotWriteSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 from rest_framework import serializers
-from .models import Degree, CourseModule, Lab, CourseStaff, TimetableSlot
+from ..models import Degree, CourseModule, Lab, CourseStaff, TimetableSlot
 from datetime import datetime
 
 class DegreeSerializer(serializers.ModelSerializer):

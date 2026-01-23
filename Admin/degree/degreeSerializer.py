@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from .models import *
+from ..models import *
 from Authenticate.models import UserTable
-from .serializer import *
+from ..serializer import *
 
 class DegreeSerializer(serializers.ModelSerializer):
     """

@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .serializer import *
-from .models import *
+from ..serializer import *
+from ..models import *
 
 
 

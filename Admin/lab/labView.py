@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Lab
+from ..models import Lab
 from .labSerializer import LabSerializer
 from rest_framework.permissions import IsAuthenticated
 
@@ -60,7 +60,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 from datetime import datetime, time
-from .models import Lab, TimetableSlot
+from ..models import Lab, TimetableSlot
 from .labSerializer import LabAvailabilityRequestSerializer, AvailableLabSerializer
 # views.py
 from django.shortcuts import get_object_or_404
@@ -70,7 +70,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from datetime import datetime, date
-from .models import Lab, TimetableSlot, Degree, CourseModule
+from ..models import Lab, TimetableSlot, Degree, CourseModule
 from .labSerializer import LabAvailabilityRequestSerializer, AvailableLabSerializer
 
 class LabAvailabilityView(APIView):
