@@ -157,4 +157,24 @@ AUTH_USER_MODEL = 'Authenticate.UserTable'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
     "http://127.0.0.1:9000",
+    "http://localhost:5173",  # Vite default
 ]
+
+# Email Configuration
+# For Development: Console Backend (emails print to console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@yourdomain.com'
+
+# For Production: Use real SMTP (Gmail example) - Currently blocked by firewall
+# Uncomment below and comment out console backend when firewall is fixed
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 465  # Use 465 for SSL or 587 for TLS
+EMAIL_USE_SSL = True  # For port 465
+EMAIL_USE_TLS = False  # For port 465 (use True for 587)
+EMAIL_HOST_USER = 'mbenash961030@gmail.com'
+EMAIL_HOST_PASSWORD = 'iisscbxkrrodwlin'
+DEFAULT_FROM_EMAIL = 'mbenash961030@gmail.com'
+
+# Frontend URL for password reset links
+FRONTEND_URL = 'http://localhost:5173'  # Adjust to your frontend URL
