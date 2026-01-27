@@ -3,25 +3,31 @@ from ..models import *
 from Authenticate.models import UserTable
 from ..serializer import *
 
-# create
+
+# === COURSE MODULE SERIALIZERS ===
+
 class CreateModuleSerializer(serializers.ModelSerializer):
-    # degree_details = DegreeSimpleSerializer(source='degree', read_only=True)
+    """
+    Minimal serializer for creating new course modules.
+    Only accepts essential fields: name, code, and credit.
+    """
     class Meta:
         model = CourseModule
         fields = ['id', 'module_name', 'module_code', 'credit']
 
-# get
+
 class ModuleSimpleSerializer(serializers.ModelSerializer):
-    # Get degree details (Existing)
+    """
+    Serializer for displaying course modules with related data.
+    Includes degree details and assigned staff for each module.
+    """
     degree_details = DegreeSimpleSerializer(source='degree', read_only=True)
-    
-    # Get staff details (New)
-    # This uses the CourseStaffSerializer to show who is teaching this module
     assigned_staff = CourseStaffSerializer(source='staff_assignments', many=True, read_only=True)
 
     class Meta:
         model = CourseModule
-        fields = ['id', 
+        fields = [
+            'id', 
             'module_name', 
             'module_code', 
             'credit', 
@@ -31,8 +37,12 @@ class ModuleSimpleSerializer(serializers.ModelSerializer):
             'assigned_staff'  
         ]
 
-#  Edit
+
 class ModuleUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating course modules.
+    Handles updating module details and syncing staff assignments.
+    """
     # Field to accept a list of Staff IDs: [5, 8]
     staff_id = serializers.ListField(
         child=serializers.IntegerField(),
@@ -66,26 +76,35 @@ class ModuleUpdateSerializer(serializers.ModelSerializer):
                 CourseStaff.objects.get_or_create(
                     course_module=instance, 
                     staff_id=s_id,
-                    defaults={'role': 'Lecturer'} # Default role if creating new
+                    defaults={'role': 'Lecturer'}  # Default role if creating new
                 )
 
         return instance
-    
-#  get single staff courses 
+
+
+# === COURSE-STAFF RELATIONSHIP SERIALIZERS ===
+
 class ModuleWithDegreeSerializer(serializers.ModelSerializer):
+    """
+    Lightweight module serializer showing degree association.
+    Used within staff assignment details.
+    """
     degree_details = DegreeSimpleSerializer(source='degree', read_only=True)
 
     class Meta:
         model = CourseModule
         fields = ['id', 'module_name', 'module_code', 'credit', 'degree_details']
 
+
 class StaffAssignmentDetailSerializer(serializers.ModelSerializer):
-    # This nests the module (and its degree) inside the assignment
+    """
+    Detailed serializer for staff course assignments.
+    Nests module and degree information for each assignment.
+    """
     module_details = ModuleWithDegreeSerializer(source='course_module', read_only=True)
     staff_id = serializers.IntegerField(source='staff.id', read_only=True)
     staff_name = serializers.CharField(source='staff.full_name', read_only=True)
 
-
     class Meta:
         model = CourseStaff
-        fields = ['id', 'role', 'assigned_at', 'module_details','staff_id','staff_name',]
+        fields = ['id', 'role', 'assigned_at', 'module_details', 'staff_id', 'staff_name']

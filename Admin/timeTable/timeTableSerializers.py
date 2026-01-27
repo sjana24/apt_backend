@@ -1,43 +1,9 @@
 from rest_framework import serializers
-from ..models import (
-    Degree,
-    CourseModule,
-    Lab,
-    CourseStaff,
-    TimetableSlot
-)
-from Authenticate.models import UserTable
+from ..models import *
 from ..lab.labSerializer import *
 from ..degree.degreeSerializer import *
 from ..course.courseSerializer import *
 
-# class TimetableSlotGetSerializer(serializers.ModelSerializer):
-#     degree = DegreeSerializer(read_only=True)
-#     module = CourseModuleSerializer(read_only=True)
-#     lab = LabSerializer(read_only=True)
-#     created_by = serializers.CharField(source='created_by.username', read_only=True)
-
-#     day_of_week_display = serializers.CharField(
-#         source='get_day_of_week_display',
-#         read_only=True
-#     )
-
-#     class Meta:
-#         model = TimetableSlot
-#         fields = [
-#             'id',
-#             'degree',
-#             'module',
-#             'lab',
-#             'slot_date',
-#             'day_of_week',
-#             'day_of_week_display',
-#             'time_range',
-#             'note',
-#             'created_by',
-#             'created_at',
-#             'updated_at'
-#         ]
 
 class TimetableSlotWriteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -58,9 +24,7 @@ class TimetableSlotWriteSerializer(serializers.ModelSerializer):
             validated_data['created_by'] = request.user
         return super().create(validated_data)
 
-from rest_framework import serializers
-from ..models import Degree, CourseModule, Lab, CourseStaff, TimetableSlot
-from datetime import datetime
+
 
 class DegreeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -85,20 +49,6 @@ class CourseStaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseStaff
         fields = '__all__'
-
-# class TimetableSlotSerializer(serializers.ModelSerializer):
-#     degree_name = serializers.CharField(source='degree.degreeProgram', read_only=True)
-#     module_code = serializers.CharField(source='module.module_code', read_only=True)
-#     module_name = serializers.CharField(source='module.module_name', read_only=True) if CourseModule else None
-#     lab_name = serializers.CharField(source='lab.name', read_only=True)
-#     lab_code = serializers.CharField(source='lab.lab_code', read_only=True)
-#     staff_id = serializers.CharField(source='admin_coursestaff.staff_id', read_only=True)
-#     created_by_name = serializers.CharField(source='created_by.full_name', read_only=True)
-    
-#     class Meta:
-#         model = TimetableSlot
-#         fields = '__all__'
-#         read_only_fields = ('created_at', 'updated_at', 'created_by')
 
 class TimetableSlotCreateSerializer(serializers.ModelSerializer):
     class Meta:

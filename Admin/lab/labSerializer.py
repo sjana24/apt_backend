@@ -1,29 +1,35 @@
 from rest_framework import serializers
+from datetime import datetime
+import re
 from ..models import *
-# from Authenticate.models import UserTable
 
+
+# === BASIC LAB SERIALIZER ===
 
 class LabSerializer(serializers.ModelSerializer):
+    """
+    Serializer for laboratory spaces.
+    Includes basic lab information: name, capacity, availability, and timestamps.
+    """
     class Meta:
         model = Lab
-        fields = ['id', 'name', 'capacity','availability', 'created_at', 'updated_at','lab_code']
+        fields = ['id', 'name', 'capacity', 'availability', 'created_at', 'updated_at', 'lab_code']
 
-# labAvailabilitySerializer.py
-from rest_framework import serializers
-from datetime import datetime, time
-import re
-from ..models import Lab, TimetableSlot, Degree, CourseModule
-from .labSerializer import LabSerializer
+
+# === LAB AVAILABILITY VALIDATION ===
 
 class LabAvailabilityRequestSerializer(serializers.Serializer):
-    """Serializer for lab availability request"""
+    """
+    Validator for lab availability check requests.
+    Validates date, time range, and optional degree/module filters.
+    """
     date = serializers.DateField(required=True)
     time_range = serializers.CharField(required=True)
     degree_id = serializers.IntegerField(required=False, allow_null=True)
     module_id = serializers.IntegerField(required=False, allow_null=True)
     
     def validate_time_range(self, value):
-        """Validate and normalize time range format"""
+        """Validate and normalize time range format to HH:MM - HH:MM"""
         # Remove any quotes
         value = str(value).strip().strip('"\'').strip()
         
@@ -61,7 +67,7 @@ class LabAvailabilityRequestSerializer(serializers.Serializer):
         )
     
     def validate(self, data):
-        """Additional validation"""
+        """Validate that referenced degree and module exist"""
         # Validate degree exists if provided
         degree_id = data.get('degree_id')
         if degree_id:
@@ -86,8 +92,12 @@ class LabAvailabilityRequestSerializer(serializers.Serializer):
         
         return data
 
+
 class AvailableLabSerializer(LabSerializer):
-    """Extended Lab serializer with availability and conflict details"""
+    """
+    Extended Lab serializer with availability status and conflict details.
+    Used for availability check results showing which labs are free/occupied.
+    """
     is_available = serializers.BooleanField(read_only=True)
     conflict_details = serializers.SerializerMethodField()
     
@@ -95,7 +105,7 @@ class AvailableLabSerializer(LabSerializer):
         fields = LabSerializer.Meta.fields + ['is_available', 'conflict_details']
     
     def get_conflict_details(self, obj):
-        """Get conflict details if lab is occupied"""
+        """Get conflict details if lab is occupied at requested time"""
         request = self.context.get('request')
         if request and hasattr(request, 'query_params'):
             date_str = request.query_params.get('date')
@@ -103,12 +113,12 @@ class AvailableLabSerializer(LabSerializer):
             
             if date_str and time_range:
                 try:
-                    # Check if this lab is already booked at this time
-                    from datetime import datetime
                     date = datetime.strptime(date_str, '%Y-%m-%d').date()
                     
                     # Check for existing booking in TimetableSlot
-                    existing_booking = TimetableSlot.objects.filter(
+                    existing_booking = TimetableSlot.objects.select_related(
+                        'degree', 'module', 'created_by'
+                    ).filter(
                         lab=obj,
                         slot_date=date,
                         time_range=time_range
