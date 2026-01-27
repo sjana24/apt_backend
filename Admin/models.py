@@ -66,6 +66,11 @@ class Lab(models.Model):
     
 
 class CourseStaff(models.Model):
+    ROLE_CHOICES = [
+        ('Lecturer', 'Lecturer'),
+        ('Demonstrator', 'Demonstrator'),
+    ]
+
     # Link to the Module
     course_module = models.ForeignKey(
         'CourseModule', 
@@ -81,7 +86,13 @@ class CourseStaff(models.Model):
     )
     
     # Additional Info
-    role = models.CharField(max_length=100, blank=True, null=True, help_text="e.g. Lead Lecturer, Lab Assistant")
+    role = models.CharField(
+        max_length=100, 
+        choices=ROLE_CHOICES,
+        blank=True, 
+        null=True, 
+        help_text="e.g. Lecturer, Demonstrator"
+    )
     assigned_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

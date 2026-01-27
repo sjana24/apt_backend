@@ -10,12 +10,12 @@ class StaffViewSet(viewsets.ModelViewSet):
     Handles CRUD for staff members and their assignments.
     """
     permission_classes = [IsAuthenticated]
-    queryset = UserTable.objects.filter(role='staff')
+    queryset = UserTable.objects.filter(role__in=['staff', 'admin'])
     serializer_class = StaffSerializer
 
     def get_queryset(self):
-        # Optimize query: filter only staff and prefetch assignments
-        return UserTable.objects.filter(role='staff').prefetch_related(
+        # Optimize query: filter admin and staff and prefetch assignments
+        return UserTable.objects.filter(role__in=['staff', 'admin']).prefetch_related(
             'module_assignments__course_module'
         )
 
