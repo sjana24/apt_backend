@@ -25,6 +25,10 @@ class UserTable(AbstractBaseUser):
     email = models.EmailField(unique=True, max_length=255)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='staff')
     
+    # Password Reset Fields
+    reset_token = models.CharField(max_length=100, blank=True, null=True)
+    reset_token_expiry = models.DateTimeField(blank=True, null=True)
+    
     # Audit Fields
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
