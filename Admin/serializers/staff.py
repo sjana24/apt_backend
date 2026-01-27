@@ -30,7 +30,6 @@ class StaffSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserTable
         fields = ['id', 'email', 'full_name', 'role', 'is_active', 'created_at', 'assigned_modules']
-        read_only_fields = ['role']
 
 from ..models import CourseStaff, CourseModule, Degree
 
