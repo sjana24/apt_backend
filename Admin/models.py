@@ -12,13 +12,13 @@ class Degree(models.Model):
     ]
     
     SEMESTER_CHOICES = [
-        ('I', 'Semester I'),
-        ('II', 'Semester II'),
+        ('1', 'Semester 1'),
+        ('2', 'Semester 2'),
     ]
 
     degreeProgram = models.CharField(max_length=255) # e.g., "BSc in Computer Science"
     level = models.CharField(max_length=3, choices=LEVEL_CHOICES)
-    semester = models.CharField(max_length=2, choices=SEMESTER_CHOICES)
+    semester = models.CharField(max_length=1, choices=SEMESTER_CHOICES)
     
     # Defaults to the current year (e.g., 2026)
     academicYear = models.IntegerField(default=datetime.now().year)
