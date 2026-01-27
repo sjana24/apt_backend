@@ -86,6 +86,8 @@ class CourseStaffViewSet(viewsets.ModelViewSet):
     serializer_class = CourseStaffSerializer
     permission_classes = [IsAuthenticated]
 
+from django.db.models import Sum
+
 # TimetableSlot ViewSet
 class TimetableSlotViewSet(viewsets.ModelViewSet):
     queryset = TimetableSlot.objects.all()
@@ -119,6 +121,58 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(slot_date=date)
         
         return queryset
+
+    @action(detail=False, methods=['get'])
+    def dashboard_stats(self, request):
+        """Get summary stats for the staff dashboard"""
+        user = request.user
+        today = datetime.now().date()
+        start_of_week = today - timedelta(days=today.weekday())
+        end_of_week = start_of_week + timedelta(days=6)
+        
+        # 1. Modules assigned to this staff
+        assigned_module_ids = CourseStaff.objects.filter(staff=user).values_list('course_module_id', flat=True)
+        
+        # 2. Upcoming sessions today
+        upcoming_count = TimetableSlot.objects.filter(
+            module_id__in=assigned_module_ids,
+            slot_date=today
+        ).count()
+        
+        # 3. Pending sessions (all sessions this week for assigned modules)
+        pending_sessions = TimetableSlot.objects.filter(
+            module_id__in=assigned_module_ids,
+            slot_date__gte=today,
+            slot_date__lte=end_of_week
+        ).count()
+        
+        # 4. Available labs today (total available labs right now)
+        available_labs = Lab.objects.filter(availability=True).count()
+        
+        # 5. Booked hours (sum of credits for assigned modules)
+        total_credits = CourseModule.objects.filter(id__in=assigned_module_ids).aggregate(Sum('credit'))['credit__sum'] or 0
+        
+        return Response({
+            'upcoming': upcoming_count,
+            'pending': pending_sessions,
+            'available': available_labs,
+            'bookedHours': total_credits
+        })
+
+    @action(detail=False, methods=['get'])
+    def my_schedule(self, request):
+        """Get top 10 upcoming sessions for the logged-in staff"""
+        user = request.user
+        today = datetime.now().date()
+        
+        assigned_module_ids = CourseStaff.objects.filter(staff=user).values_list('course_module_id', flat=True)
+        slots = TimetableSlot.objects.filter(
+            module_id__in=assigned_module_ids,
+            slot_date__gte=today
+        ).order_by('slot_date', 'time_range')[:10]
+        
+        serializer = TimetableSlotSerializer(slots, many=True)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['post'])
     def get_range(self, request):
@@ -172,15 +226,24 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['get', 'post'])
     def check_availability(self, request):
-        """Check lab and time slot availability"""
-        lab_id = request.query_params.get('lab_id')
-        slot_date = request.query_params.get('slot_date')
-        time_range = request.query_params.get('time_range')
+        """
+        Check lab availability.
+        If lab_id is provided: Check specific lab.
+        If no lab_id: Return list of all available labs for that slot.
+        """
+        lab_id = request.query_params.get('lab_id') or request.data.get('lab_id')
+        slot_date = request.query_params.get('date') or request.data.get('date') # Frontend uses 'date' param
+        time_range = request.query_params.get('time_range') or request.data.get('time_range')
         
-        if lab_id and slot_date and time_range:
-            # Check if lab exists and is available
+        if not slot_date or not time_range:
+             return Response({
+                'error': 'Missing parameters: date and time_range are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Legacy/Specific check
+        if lab_id:
             lab = get_object_or_404(Lab, id=lab_id)
             if not lab.availability:
                 return Response({
@@ -188,7 +251,6 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
                     'message': f'Lab {lab.name} is not available'
                 })
             
-            # Check if lab is already booked at this time
             conflicting_slot = TimetableSlot.objects.filter(
                 lab_id=lab_id,
                 slot_date=slot_date,
@@ -198,14 +260,20 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
             if conflicting_slot:
                 return Response({
                     'available': False,
-                    'message': f'Lab {lab.name} is already booked at {time_range} on {slot_date}'
+                    'message': f'Lab {lab.name} is already booked'
                 })
             
             return Response({
                 'available': True,
-                'message': f'Lab {lab.name} is available at {time_range} on {slot_date}'
+                'message': f'Lab {lab.name} is available'
             })
+
+        # Feature: List all available labs
+        booked_lab_ids = TimetableSlot.objects.filter(
+            slot_date=slot_date,
+            time_range=time_range
+        ).values_list('lab_id', flat=True)
         
-        return Response({
-            'error': 'Missing parameters: lab_id, slot_date, and time_range are required'
-        }, status=status.HTTP_400_BAD_REQUEST)
+        available_labs = Lab.objects.exclude(id__in=booked_lab_ids).filter(availability=True)
+        serializer = LabSerializer(available_labs, many=True)
+        return Response({'labs': serializer.data})

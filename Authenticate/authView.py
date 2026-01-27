@@ -127,3 +127,24 @@ class LogoutView(APIView):
             return Response({"message": "Successfully logged out."}, status=status.HTTP_205_RESET_CONTENT)
         except Exception as e:
             return Response({"error": "Invalid token or already logged out."}, status=status.HTTP_400_BAD_REQUEST)
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+
+        if not old_password or not new_password:
+            return Response({"error": "Old and new passwords are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(old_password):
+            return Response({"error": "Incorrect old password."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user.set_password(new_password)
+            user.save()
+            return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
