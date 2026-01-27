@@ -10,12 +10,18 @@ from ..serializers.degree import (
     DegreeSearchSerializer
 )
 
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
 class DegreeViewSet(viewsets.ModelViewSet):
     """
     Unified ViewSet for Degree operations.
     Replaces: DegreeView, DegreeUpdateView, DegreeSearchView
     """
-    permission_classes = [IsAuthenticated]
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'search']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
     queryset = Degree.objects.all()
     
     def get_serializer_class(self):

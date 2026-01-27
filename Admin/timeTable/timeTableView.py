@@ -88,10 +88,16 @@ class CourseStaffViewSet(viewsets.ModelViewSet):
 
 from django.db.models import Sum
 
+from rest_framework.permissions import IsAuthenticated, AllowAny
+
 # TimetableSlot ViewSet
 class TimetableSlotViewSet(viewsets.ModelViewSet):
     queryset = TimetableSlot.objects.all()
-    permission_classes = [IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve', 'get_range']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
