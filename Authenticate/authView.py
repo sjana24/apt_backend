@@ -242,28 +242,26 @@ class ForgotPasswordView(APIView):
         try:
             user = UserTable.objects.get(email=email.lower())
             
-            # Generate a secure random token
-            reset_token = secrets.token_urlsafe(32)
+            # Generate a 6-digit OTP
+            reset_otp = str(secrets.randbelow(900000) + 100000)
             
-            # Set token expiry (1 hour from now)
-            user.reset_token = reset_token
-            user.reset_token_expiry = timezone.now() + timedelta(hours=1)
+            # Set OTP expiry (10 minutes from now)
+            user.reset_otp = reset_otp
+            user.reset_otp_expiry = timezone.now() + timedelta(minutes=10)
             user.save()
             
-            # Create reset link (adjust the frontend URL as needed)
-            reset_link = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
-            
-            # Send email
+            # Send OTP via email
             send_mail(
-                subject="Password Reset Request",
-                message=f"Hello {user.full_name},\n\nClick the link below to reset your password:\n{reset_link}\n\nThis link will expire in 1 hour.\n\nIf you didn't request this, please ignore this email.",
+                subject="Password Reset OTP",
+                message=f"Hello {user.full_name},\n\nYour password reset OTP is: {reset_otp}\n\nThis OTP will expire in 10 minutes.\n\nIf you didn't request this, please ignore this email and your account will remain secure.",
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
                 fail_silently=False,
             )
             
             return Response({
-                "message": "Password reset email sent successfully. Check your inbox."
+                "message": "Password reset OTP sent successfully. Check your inbox.",
+                "email": email
             }, status=status.HTTP_200_OK)
             
         except UserTable.DoesNotExist:
@@ -274,14 +272,42 @@ class ForgotPasswordView(APIView):
         except Exception as e:
             return Response({"error": f"Failed to send email: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# --- RESET PASSWORD (Verify Token and Update Password) ---
+# --- VERIFY OTP ---
+class VerifyOTPView(APIView):
+    def post(self, request):
+        email = request.data.get("email", "").strip()
+        otp = request.data.get("otp", "").strip()
+        
+        if not email or not otp:
+            return Response({"error": "Email and OTP are required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            user = UserTable.objects.get(email=email.lower())
+            
+            # Check if OTP matches
+            if user.reset_otp != otp:
+                return Response({"error": "Invalid OTP. Please check and try again."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check if OTP has expired
+            if user.reset_otp_expiry < timezone.now():
+                return Response({"error": "OTP has expired. Please request a new one."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return Response({"message": "OTP verified successfully. You can now reset your password."}, status=status.HTTP_200_OK)
+            
+        except UserTable.DoesNotExist:
+            return Response({"error": "Invalid email address."}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+# --- RESET PASSWORD (After OTP Verification) ---
 class ResetPasswordView(APIView):
     def post(self, request):
-        token = request.data.get("token")
+        email = request.data.get("email", "").strip()
+        otp = request.data.get("otp", "").strip()
         new_password = request.data.get("new_password")
         
-        if not token or not new_password:
-            return Response({"error": "Token and new password are required."}, status=status.HTTP_400_BAD_REQUEST)
+        if not email or not otp or not new_password:
+            return Response({"error": "Email, OTP and new password are required."}, status=status.HTTP_400_BAD_REQUEST)
         
         # Password strength validation
         if len(new_password) < 8:
@@ -297,21 +323,25 @@ class ResetPasswordView(APIView):
             )
         
         try:
-            user = UserTable.objects.get(reset_token=token)
+            user = UserTable.objects.get(email=email.lower())
             
-            # Check if token has expired
-            if user.reset_token_expiry < timezone.now():
-                return Response({"error": "Reset token has expired. Please request a new one."}, status=status.HTTP_400_BAD_REQUEST)
+            # Verify OTP again
+            if user.reset_otp != otp:
+                return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check if OTP has expired
+            if user.reset_otp_expiry < timezone.now():
+                return Response({"error": "OTP has expired. Please request a new one."}, status=status.HTTP_400_BAD_REQUEST)
             
             # Update password
             user.set_password(new_password)
-            user.reset_token = None  # Clear the token
-            user.reset_token_expiry = None
+            user.reset_otp = None  # Clear the OTP
+            user.reset_otp_expiry = None
             user.save()
             
             return Response({"message": "Password reset successfully. You can now login with your new password."}, status=status.HTTP_200_OK)
             
         except UserTable.DoesNotExist:
-            return Response({"error": "Invalid reset token."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid email address."}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
