@@ -221,7 +221,15 @@ class ChangePasswordView(APIView):
         try:
             user.set_password(new_password)
             user.save()
-            return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
+            
+            # Generate new tokens for the user
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "message": "Password changed successfully.",
+                "access": str(refresh.access_token),
+                "refresh": str(refresh)
+            }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
