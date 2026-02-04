@@ -29,6 +29,18 @@ class CourseModuleViewSet(viewsets.ModelViewSet):
         # Optimize queries
         queryset = CourseModule.objects.select_related('degree').prefetch_related('staff_assignments__staff')
         return queryset
+    
+    def destroy(self, request, *args, **kwargs):
+        """
+        Only allow admins to delete modules.
+        Staff/lecturers should not be able to delete modules.
+        """
+        if request.user.role != 'admin':
+            return Response(
+                {"error": "Only administrators can delete modules."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().destroy(request, *args, **kwargs)
 
 # Specific Generic Views for custom endpoints to maintain exact URL structure if needed, 
 # or mapped via ViewSet actions.
