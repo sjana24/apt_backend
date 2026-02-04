@@ -25,8 +25,10 @@ class UserTable(AbstractBaseUser):
     email = models.EmailField(unique=True, max_length=255)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='staff')
     
-    # Password Reset Fields
-    reset_token = models.CharField(max_length=100, blank=True, null=True)
+    # Password Reset Fields (OTP-based)
+    reset_otp = models.CharField(max_length=6, blank=True, null=True)
+    reset_otp_expiry = models.DateTimeField(blank=True, null=True)
+    reset_token = models.CharField(max_length=100, blank=True, null=True)  # Keep for backward compatibility
     reset_token_expiry = models.DateTimeField(blank=True, null=True)
     
     # Audit Fields
