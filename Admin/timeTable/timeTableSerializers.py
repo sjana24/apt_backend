@@ -6,6 +6,8 @@ from ..course.courseSerializer import *
 
 
 class TimetableSlotWriteSerializer(serializers.ModelSerializer):
+    day_of_week = serializers.IntegerField(required=False, allow_null=True)
+    
     class Meta:
         model = TimetableSlot
         fields = [
@@ -19,6 +21,11 @@ class TimetableSlotWriteSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
+        # Automatically set day_of_week from slot_date
+        slot_date = validated_data.get('slot_date')
+        if slot_date:
+            validated_data['day_of_week'] = slot_date.isoweekday()
+            
         request = self.context.get('request')
         if request and request.user:
             validated_data['created_by'] = request.user
@@ -51,10 +58,12 @@ class CourseStaffSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class TimetableSlotCreateSerializer(serializers.ModelSerializer):
+    day_of_week = serializers.IntegerField(required=False, allow_null=True)
+    
     class Meta:
         model = TimetableSlot
         fields = '__all__'
-        read_only_fields = ('created_at', 'updated_at', 'created_by', 'day_of_week')
+        read_only_fields = ('created_at', 'updated_at', 'created_by')
 
     def create(self, validated_data):
         # Automatically set day_of_week from slot_date
