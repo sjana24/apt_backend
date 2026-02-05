@@ -11,8 +11,17 @@ from .assignment.assignmentViewSet import AssignmentViewSet
 
 urlpatterns = [
     # --- ASSIGNMENT ENDPOINTS ---
+# jana start-----------
     path('assignments', AssignmentViewSet.as_view({'get': 'list', 'post': 'create'}), name='assignment-list'),
     path('assignments/<int:pk>', AssignmentViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='assignment-detail'),
+# jana end-----------
+# jana
+    path('timetable-slots', TimetableSlotListCreateAPIView.as_view(), name='timetable-slot-list-create'),
+    path('timetable-slots/<int:pk>', TimetableSlotDetailAPIView.as_view(), name='timetable-slot-detail'),
+# jana end -----  
+    # Custom Timetable Logic
+# jana
+    path('timetable/by-degree', TimetableSlotViewSet.as_view({'get': 'list'}), name='timetable-by-degree'),
 
     # --- COURSE ENDPOINTS ---
     path('course', CourseModuleViewSet.as_view({'get': 'list', 'post': 'create'})),
@@ -39,14 +48,12 @@ urlpatterns = [
     path('degree', DegreeViewSet.as_view({'get': 'list', 'post': 'create'}), name='degree-list'),
     path('degreeSearch', DegreeViewSet.as_view({'get': 'search'}), name='degree-searchlist'),
     path('degree/<int:pk>', DegreeViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='degree-detail'),
+
     path('degree/staff/<int:staff_id>/', StaffAssignmentsByDegreeView.as_view(), name='staff-degree-assignments'),
 
     # --- TIMETABLE ENDPOINTS ---
-    path('timetable-slots', TimetableSlotListCreateAPIView.as_view(), name='timetable-slot-list-create'),
-    path('timetable-slots/<int:pk>', TimetableSlotDetailAPIView.as_view(), name='timetable-slot-detail'),
-    
-    # Custom Timetable Logic
-    path('timetable/by-degree', TimetableSlotViewSet.as_view({'get': 'list'}), name='timetable-by-degree'),
+
+
     path('timetable/dashboard-stats', TimetableSlotViewSet.as_view({'get': 'dashboard_stats'}), name='dashboard-stats'),
     path('timetable/my-schedule', TimetableSlotViewSet.as_view({'get': 'my_schedule'}), name='my-schedule'),
     path('timetable-slots/by-lab', TimetableSlotLabViewSet.as_view({'post': 'by_lab'}), name='timetable-by-lab'),

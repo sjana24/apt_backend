@@ -39,6 +39,17 @@ class TimetableSlotDetailAPIView(APIView):
             {"message": "Timetable slot deleted successfully"},
             status=status.HTTP_204_NO_CONTENT
         )
+    
+
+
+
+
+
+
+
+
+
+    
 from rest_framework import viewsets, generics, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -90,6 +101,7 @@ from django.db.models import Sum
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
+# Janakan -- start
 # TimetableSlot ViewSet
 class TimetableSlotViewSet(viewsets.ModelViewSet):
     queryset = TimetableSlot.objects.all()
@@ -127,7 +139,7 @@ class TimetableSlotViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(slot_date=date)
         
         return queryset
-
+#  jana end---
     @action(detail=False, methods=['get'])
     def dashboard_stats(self, request):
         """Get summary stats for the staff dashboard"""
