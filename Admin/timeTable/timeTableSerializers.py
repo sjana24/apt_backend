@@ -19,6 +19,46 @@ class TimetableSlotWriteSerializer(serializers.ModelSerializer):
             'time_range',
             'note'
         ]
+        # Disable default unique_together validators - we'll handle this in validate()
+        validators = []
+
+    def validate(self, data):
+        """
+        Check for existing slots - provide clear error messages
+        """
+        degree = data.get('degree')
+        slot_date = data.get('slot_date')
+        time_range = data.get('time_range')
+        lab = data.get('lab')
+        
+        # Check if degree already has a slot at this time
+        existing_degree_slot = TimetableSlot.objects.filter(
+            degree=degree,
+            slot_date=slot_date,
+            time_range=time_range
+        ).first()
+        
+        if existing_degree_slot:
+            raise serializers.ValidationError(
+                f"This degree already has a session booked at {time_range} on {slot_date}. "
+                f"Currently assigned to lab: {existing_degree_slot.lab.name if existing_degree_slot.lab else 'No lab'}."
+            )
+        
+        # Check if lab is already booked at this time
+        if lab:
+            existing_lab_slot = TimetableSlot.objects.filter(
+                lab=lab,
+                slot_date=slot_date,
+                time_range=time_range
+            ).first()
+            
+            if existing_lab_slot:
+                raise serializers.ValidationError(
+                    f"This lab is already booked at {time_range} on {slot_date} "
+                    f"by {existing_lab_slot.degree.degreeProgram if existing_lab_slot.degree else 'another program'}."
+                )
+        
+        return data
 
     def create(self, validated_data):
         # Automatically set day_of_week from slot_date

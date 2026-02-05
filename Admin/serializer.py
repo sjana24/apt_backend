@@ -12,7 +12,7 @@ class DegreeSimpleSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Degree
-        fields = ['id', 'degreeProgram', 'level', 'semester', 'academicYear']
+        fields = ['id', 'degreeProgram', 'level', 'semester', 'academicYear'] #only these will exposed to the response when sending it back to the frontend
 
 
 class ModuleSimpleSerializer(serializers.ModelSerializer):

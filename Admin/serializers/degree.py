@@ -60,9 +60,6 @@ class DegreeModuleSyncSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         
         if module_ids is not None:
-            # Clear existing modules or add to them? 
-            # Usually strict sync means set the relationship to these IDs.
-            # Assuming CourseModule has a 'degree' FK, we can update the modules.
-            # But wait, modules have the FK to degree. 
+           
             pass 
         return instance
